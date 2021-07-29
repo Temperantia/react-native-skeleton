@@ -1,32 +1,45 @@
-import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useCallback } from "react";
+import { Button, Text, TextInput, View } from "react-native";
+import { Controller, useForm } from "react-hook-form";
+import tw from "tailwind-react-native-classnames";
 
-import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+import { productCollection } from "../firebase";
 
-export default function TabTwoScreen() {
+const TabTwoScreen = () => {
+  const { control, handleSubmit, reset } = useForm();
+
+  const onSubmit = useCallback(
+    handleSubmit(async ({ name }) => {
+      await productCollection.add({ name });
+      reset();
+    }),
+    [handleSubmit, productCollection]
+  );
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabTwoScreen.tsx" />
+    <View>
+      <Controller
+        control={control}
+        rules={{ required: true }}
+        render={({
+          field: { onChange, onBlur, value },
+          fieldState: { error },
+        }) => (
+          <View>
+            <TextInput
+              placeholder="Name"
+              onChangeText={onChange}
+              onBlur={onBlur}
+              value={value}
+            ></TextInput>
+            {error && <Text style={tw`text-red-500`}>Required</Text>}
+          </View>
+        )}
+        name="name"
+      ></Controller>
+      <Button title="Add Product" onPress={onSubmit}></Button>
     </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
+export default TabTwoScreen;
